@@ -17,7 +17,7 @@ void setup()
 void loop()
 {
 	button_state = digitalRead(button_pin);
-	if(button_state == HIGH)
+	if(analog.X_Axis_Positive == HIGH)
 	{
 		const char text[] = "Your Button State is HIGH";
 		radio.write(&text, sizeof(text));                  //Sending the message to receiver

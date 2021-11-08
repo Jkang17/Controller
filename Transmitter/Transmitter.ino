@@ -9,6 +9,8 @@
 #define TURNING ("Input some ADC value here for moving TURNING")
 #define SWING   ("Input some ADC value here for swinging.")
 */
+#define X_AXIS  A4
+#define Y_AXIS  A5
 
 RF24 radio(9, 10); // CE, CSN         
 const byte address[6] = "00001";     /*Byte of array representing the address. This is the address where we will send the data. 
@@ -40,10 +42,10 @@ typedef struct
 
 typedef struct
 {
-  uint32_t swingAnalogRead = 0u;
-  uint32_t accelerateAnalogRead = 0u;
-  uint32_t reverseAnalogRead = 0u;
-  uint32_t brakeAnalogPin = 0u;
+  uint32_t X_Axis_Positive = 0u;
+  uint32_t X_Axis_Negative = 0u;
+  uint32_t Y_Axis_Positive = 0u;
+  uint32_t Y_Axis_Negative = 0u;
 }Analog_t;
 
 Digital_t digital;
@@ -76,21 +78,49 @@ switch(ControllerState)
     ControllerState = ACCELERATE;
     break;
 
-  case ACCELERATE:      /*Note: */
-    if(digital.accelerateDigitalRead == HIGH) // Note: Add ADC values for joystick control.
+  case ACCELERATE:      /*Note: Adjust below commented code to accomodate for X axis*/
+  
+    analog.X_Axis_Positive = analogRead(X_AXIS);
+    analog.X_Axis_Negative = analogRead(X_AXIS);
+    // Serial.println(analog.X_Axis_Positive);
+    // Serial.println(analog.X_Axis_Negative);
+    
+    if(analog.X_Axis_Negative < 450 ) //Note: Turns Left
     {
-      digital.accelerateDigitalRead = digitalRead(swingPin); 
-      Serial.println(digital.accelerateDigitalRead);
-      const char text[] = "Accelerating";
+      // digital.accelerateDigitalRead = digitalRead(swingPin); 
+      // Serial.println(digital.accelerateDigitalRead);
+      Serial.println(analog.X_Axis_Positive);
+      Serial.println(analog.X_Axis_Negative);
+      const char text[] = "Turn Left";
       Serial.println(text);
       radio.write(&text, sizeof(text));                  //Sending the message to receiver
     }
 
-    else
+    if(analog.X_Axis_Negative > 512 ) //Note: Turns Right
     {
-      digital.accelerateDigitalRead = digitalRead(swingPin);
-      Serial.println(digital.accelerateDigitalRead);
-      const char text[] = "Not Accelerating";
+      // digital.accelerateDigitalRead = digitalRead(swingPin); 
+      // Serial.println(digital.accelerateDigitalRead);
+      /*Note: if(button_pressed)
+              {
+                Proceed to accelerate while turning.
+                digital.accelerateDigitalRead = digitalRead(swingPin); 
+                Serial.println(digital.accelerateDigitalRead);
+              }
+      */
+      Serial.println(analog.X_Axis_Positive);
+      Serial.println(analog.X_Axis_Negative);
+      const char text[] = "Turn Right";
+      Serial.println(text);
+      radio.write(&text, sizeof(text));                  //Sending the message to receiver
+    }
+
+    if(analog.X_Axis_Positive < 512 && analog.X_Axis_Negative > 450)
+    {
+      // digital.accelerateDigitalRead = digitalRead(swingPin);
+      // Serial.println(digital.accelerateDigitalRead);
+      Serial.println(analog.X_Axis_Positive);
+      Serial.println(analog.X_Axis_Negative);
+      const char text[] = "Standing";
       Serial.println(text);
       radio.write(&text, sizeof(text));
     
@@ -148,6 +178,7 @@ switch(ControllerState)
     break;
   } 
 
-  radio.write(&digital.accelerateDigitalRead, sizeof(digital.accelerateDigitalRead));  //Sending the message to receiver 
+  radio.write(&analog.X_Axis_Positive , sizeof(analog.X_Axis_Positive ));  //Sending the message to receiver 
+  radio.write(&analog.X_Axis_Negative , sizeof(analog.X_Axis_Negative )); 
   delay(1);
 }
