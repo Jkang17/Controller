@@ -21,7 +21,7 @@ void loop()
 {
 	if (radio.available())              //Looking for the data.
 	{
-		char text[100] = "";                 //Saving the incoming data
+		char text[32] = "";                 //Saving the incoming data
 		radio.read(&text, sizeof(text));    //Reading the data
 		radio.read(&button_state, sizeof(button_state));    //Reading the data
 

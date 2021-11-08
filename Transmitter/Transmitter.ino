@@ -2,12 +2,13 @@
 #include <nRF24L01.h>
 #include <RF24.h>
 
+/*Note: Use these definitions to define what analog values should be on those inputs.
 #define FORWARD ("Input some ADC value here for moving forward")
 #define STOP ("Input some ADC value here for stopping")
 #define REVERSE ("Input some ADC value here for reversing.")
 #define TURNING ("Input some ADC value here for moving TURNING")
 #define SWING   ("Input some ADC value here for swinging.")
-
+*/
 
 RF24 radio(9, 10); // CE, CSN         
 const byte address[6] = "00001";     /*Byte of array representing the address. This is the address where we will send the data. 
@@ -47,7 +48,7 @@ typedef struct
 
 Digital_t digital;
 Analog_t analog;
-ControllerState_t ControllerState = STANDBY;
+ControllerState_t ControllerState = ACCELERATE;
 
 void setup() 
 {
@@ -72,14 +73,13 @@ digital.brakeDigitalRead = digitalRead(swingPin);
 switch(ControllerState)
 {
   case STANDBY:
+    ControllerState = ACCELERATE;
+    break;
 
-  ControllerState = ACCELERATE;
-  break;
-
-  case ACCELERATE:
-    if(digital.accelerateDigitalRead == HIGH && servo.analogRead == FORWARD) // Note: Add ADC values for joystick control.
+  case ACCELERATE:      /*Note: */
+    if(digital.accelerateDigitalRead == HIGH) // Note: Add ADC values for joystick control.
     {
-      digital.accelerateDigitalRead = analogRead(A5); 
+      digital.accelerateDigitalRead = digitalRead(swingPin); 
       Serial.println(digital.accelerateDigitalRead);
       const char text[] = "Accelerating";
       Serial.println(text);
@@ -88,70 +88,66 @@ switch(ControllerState)
 
     else
     {
-      digital.accelerateDigitalRead = analogRead(A5);
-      if(digital.accelerateDigitalRead  == LOW)
-      {
-        Serial.println(digital.accelerateDigitalRead);
-        const char text[] = "Not Accelerating";
-        Serial.println(text);
-        radio.write(&text, sizeof(text));
-      } //Sending the message to receiver 
+      digital.accelerateDigitalRead = digitalRead(swingPin);
+      Serial.println(digital.accelerateDigitalRead);
+      const char text[] = "Not Accelerating";
+      Serial.println(text);
+      radio.write(&text, sizeof(text));
+    
     }
-  break;
-
-  case SWING:
-    if(digital.accelerateDigitalRead == HIGH && )
-      {
-        digital.accelerateDigitalRead = analogRead(A5); 
-        Serial.println(digital.accelerateDigitalRead);
-        const char text[] = "Swing";
-        Serial.println(text);
-        radio.write(&text, sizeof(text));                  //Sending the message to receiver
-      }
-
-    else
-      {
-        digital.accelerateDigitalRead = analogRead(A5);
-        if(digital.accelerateDigitalRead == LOW)
-        {
-          Serial.println(digital.accelerateDigitalRead);
-          const char text[] = "No Swing";
-          Serial.println(text);
-          radio.write(&text, sizeof(text));
-        } //Sending the message to receiver 
-      }
+    ControllerState = ACCELERATE;
     break;
 
-    case REVERSE:
-      if(digital.accelerateDigitalRead == HIGH)
-        {
-          digital.accelerateDigitalRead = analogRead(A5); 
-          Serial.println(digital.accelerateDigitalRead);
-          const char text[] = "Reverse";
-          Serial.println(text);
-          radio.write(&text, sizeof(text));                  //Sending the message to receiver
-        }
+  // case SWING:
+  //   if(digital.accelerateDigitalRead == HIGH)
+  //   {
+  //     digital.accelerateDigitalRead = digitalRead(swingPin); 
+  //     Serial.println(digital.accelerateDigitalRead);
+  //     const char text[] = "Swing";
+  //     Serial.println(text);
+  //     radio.write(&text, sizeof(text));                  //Sending the message to receiver
+  //   }
 
-      else
-        {
-          digital.accelerateDigitalRead = analogRead(A5);
-          if(digital.accelerateDigitalRead == LOW)
-          {
-            Serial.println(digital.accelerateDigitalRead);
-            const char text[] = "No Reverse";
-            Serial.println(text);
-            radio.write(&text, sizeof(text));
-          } //Sending the message to receiver 
-        }
+  //   else
+  //   {
+  //     digital.accelerateDigitalRead = digitalRead(swingPin);
+  //     if(digital.accelerateDigitalRead == LOW)
+  //     {
+  //       Serial.println(digital.accelerateDigitalRead);
+  //       const char text[] = "No Swing";
+  //       Serial.println(text);
+  //       radio.write(&text, sizeof(text));
+  //     } //Sending the message to receiver 
+  //   }
+  //   break;
+
+  //   case REVERSE:
+  //     if(digital.accelerateDigitalRead == HIGH)
+  //     {
+  //       digital.accelerateDigitalRead = digitalRead(swingPin); 
+  //       Serial.println(digital.accelerateDigitalRead);
+  //       const char text[] = "Reverse";
+  //       Serial.println(text);
+  //       radio.write(&text, sizeof(text));                  //Sending the message to receiver
+  //     }
+
+  //     else
+  //     {
+  //       digital.accelerateDigitalRead = digitalRead(swingPin);
+  //       if(digital.accelerateDigitalRead == LOW)
+  //       {
+  //         Serial.println(digital.accelerateDigitalRead);
+  //         const char text[] = "No Reverse";
+  //         Serial.println(text);
+  //         radio.write(&text, sizeof(text));
+  //       } //Sending the message to receiver 
+  //     }
       break;
 
     default:
     break;
-} 
+  } 
 
-radio.write(&digital.accelerateDigitalRead, sizeof(digital.accelerateDigitalRead));  //Sending the message to receiver 
-
+  radio.write(&digital.accelerateDigitalRead, sizeof(digital.accelerateDigitalRead));  //Sending the message to receiver 
+  delay(1);
 }
-
-
-
