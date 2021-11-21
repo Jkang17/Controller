@@ -4,11 +4,15 @@
 RF24 radio(9, 10); // CE, CSN
 const byte address[6] = "00001";
 boolean button_state = 0;
-int led_pin = 3;
+int motor1pin1 = 5;
+int motor1pin2 = 6;
+int enPin = 2;
 
 void setup() 
 {
-	pinMode(led_pin, OUTPUT);
+	pinMode(motor1pin1, OUTPUT);
+	pinMode(motor1pin2, OUTPUT);
+//	pinMode(enPin, OUTPUT);
 	Serial.begin(9600);
 	radio.begin();
 	radio.openReadingPipe(0, address);   //Setting the address at which we will receive the data
@@ -27,13 +31,18 @@ void loop()
 
 		if(button_state == HIGH)
 		{
-			digitalWrite(led_pin, HIGH);
+//	   	analogWrite(enPin, 255); //ENB pin
+	      digitalWrite(motor1pin1, HIGH);
+	      digitalWrite(motor1pin2, LOW);
+	      
 			Serial.println(text);
 		}
-	else
-	{
-		digitalWrite(led_pin, LOW);
-		Serial.println(text);}
+		else
+		{
+        digitalWrite(motor1pin2, HIGH);
+        digitalWrite(motor1pin1, LOW);
+			Serial.println(text);
+		}
 	}
-	delay(5);
+	delay(1);
 }

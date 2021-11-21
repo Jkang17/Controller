@@ -12,7 +12,7 @@ void setup()
 
   //(Optional)
 //  pinMode(9, OUTPUT); 
-//  pinMode(10, OUTPUT);
+  pinMode(10, OUTPUT);
   //(Optional)
 }
 
@@ -22,21 +22,16 @@ void loop()
 
   //Controlling speed (0 = off and 255 = max speed):     
   //(Optional)
-  analogWrite(9, 100); //ENA pin
-  analogWrite(10, 1023); //ENB pin
+
+  analogWrite(10, 255); //ENB pin
   //(Optional)
   
   digitalWrite(motor1pin1, HIGH);
-  digitalWrite(motor1pin2, LOW);
-
-  digitalWrite(motor2pin1, HIGH);
-  digitalWrite(motor2pin2, LOW);
-  delay(3000);
-
+  delay(5000);
   digitalWrite(motor1pin1, LOW);
+  delay(1);
   digitalWrite(motor1pin2, HIGH);
-
-  digitalWrite(motor2pin1, LOW);
-  digitalWrite(motor2pin2, HIGH);
-  delay(3000);
+  delay(5000);
+  digitalWrite(motor1pin2, LOW);
+  delay(1);
 }
