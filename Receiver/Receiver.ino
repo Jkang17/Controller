@@ -2,14 +2,13 @@
 #include <nRF24L01.h>
 #include <RF24.h>
 
-#define SWING_PIN       (0u)
-#define ACCELERATE_PIN  (1u)
-#define REVERSE_PIN     (2u)
+#define L_REAR_MOTOR1   (4u)
+#define L_REAR_MOTOR2   (5u)
+#define R_REAR_MOTOR1   (6u)
+#define R_REAR_MOTOR2   (7u)
 
-#define L_REAR_MOTOR1   (3u)
-#define L_REAR_MOTOR2   (4u)
-#define R_REAR_MOTOR1   (5u)
-#define R_REAR_MOTOR2   (6u)
+#define SWING_PIN       (0u)
+#define SERVO_PIN				(1u)
 
 RF24 radio(9, 10); // CE, CSN
 const byte address[6] = "00001";
@@ -44,8 +43,6 @@ void setup()
 	pinMode(R_REAR_MOTOR1, OUTPUT);
 	pinMode(R_REAR_MOTOR2, OUTPUT);
 	pinMode(SWING_PIN, OUTPUT);
-	pinMode(ACCELERATE_PIN, OUTPUT);
-	pinMode(REVERSE_PIN, OUTPUT);
 	
 	radio.begin();
 	radio.openReadingPipe(0, address);   //Setting the address at which we will receive the data
@@ -78,40 +75,33 @@ void loop()
 					     					
 				else
 				{
-					digitalWrite(SWING_PIN, LOW);
+					MotorOff();
+					Swing();
 				}
 
 			break;
 
 			case ACCELERATE:
-
 				if (data.accelerateDigitalRead == HIGH)
 				{
-					
+					MoveForward();
 					if(data.X_Axis_Positive > 512)	/*Note: Turn Right*/
 					{
 				 			// turn servo right
+						Swing();
             Serial.println("Right");
-            digitalWrite(L_REAR_MOTOR1, HIGH);
-            digitalWrite(L_REAR_MOTOR2, LOW);
-            digitalWrite(R_REAR_MOTOR1, HIGH);
-            digitalWrite(R_REAR_MOTOR2, LOW);
          	}
            
 					else
 					{
-
+						Swing();
 						Serial.println("Nothing");
 					}
 				}
 
 				else
 				{
-					digitalWrite(L_REAR_MOTOR1, LOW);
-					digitalWrite(L_REAR_MOTOR2, LOW);
-					digitalWrite(R_REAR_MOTOR1, LOW);
-					digitalWrite(R_REAR_MOTOR2, LOW);
-
+					MotorOff();
 					ControllerState = STANDBY;
 				}
 				
@@ -120,44 +110,21 @@ void loop()
 			case REVERSE:
 			 	if (data.reverseDigitalRead == HIGH)
 			 	{
+			 		MoveBackward();
 			 		if(data.X_Axis_Positive < 512)
 			 		{
-			 			if (data.swingDigitalRead == HIGH)
-  					{
-  						digitalWrite(SWING_PIN, HIGH);
-	 			    }	     
-  					else
-  					{
-  						digitalWrite(SWING_PIN, LOW);
-  					}
+			 			Swing();
 			 		}
 
 				 	if(data.X_Axis_Negative < 450 ) //Note: Turns Right
    				{
    					/*Input the motor control here*/
-   					if (data.swingDigitalRead == HIGH)
-   					{
-   						digitalWrite(SWING_PIN, HIGH);
-						}	
-
-   					else
-   					{
-   						digitalWrite(SWING_PIN, LOW);
-   					}
+   					Swing();
    				}
 
  					if(data.X_Axis_Positive < 512 && data.X_Axis_Negative > 450)
   				{
-						if (data.swingDigitalRead == HIGH)
-						{
-							digitalWrite(SWING_PIN, HIGH);
-						}	     
-
-						else
-						{
-							digitalWrite(SWING_PIN, LOW);
-						}
-
+  					Swing();
 					}
 
     			else
@@ -168,6 +135,7 @@ void loop()
 
 				else
 				{
+				  MotorOff();
 					ControllerState = STANDBY;
 				}
 
@@ -205,4 +173,18 @@ void MotorOff()
 	digitalWrite(L_REAR_MOTOR2, LOW);
 	digitalWrite(R_REAR_MOTOR1, LOW);
 	digitalWrite(R_REAR_MOTOR2, LOW);
+}
+
+void Swing()
+{
+	if (data.swingDigitalRead == HIGH)
+	{
+		digitalWrite(SWING_PIN, HIGH);
+		digitalWrite(SWING_PIN, LOW);
+  }	  
+
+	else
+	{
+		digitalWrite(SWING_PIN, LOW);
+	}
 }
