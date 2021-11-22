@@ -72,7 +72,9 @@ void loop()
      
        else 
       {
-       ControllerState = STANDBY;
+        data.accelerateDigitalRead = 0u;
+        data.reverseDigitalRead = 0u;
+        ControllerState = STANDBY;
       }
       break;
   
@@ -107,12 +109,14 @@ void loop()
   
       else
       {
+        data.accelerateDigitalRead = 0u;
+        data.reverseDigitalRead = 0u;
         ControllerState = STANDBY;
       }
       break;
 
       case REVERSE:      /*Note: Adjust below commented code to accomodate for X axis*/
-      if (data.accelerateDigitalRead == HIGH)
+      if (data.reverseDigitalRead == HIGH)
       {
         Serial.println("Reversing");
         Serial.println(data.X_Axis_Positive);
@@ -142,6 +146,8 @@ void loop()
   
       else
       {
+        data.accelerateDigitalRead = 0u;
+        data.reverseDigitalRead = 0u;
         ControllerState = STANDBY;
       }
       break;
