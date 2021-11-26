@@ -2,12 +2,11 @@
 #include <nRF24L01.h>
 #include <RF24.h>
 
-
-#define SWING_PIN   0u
-#define ACCELERATE_PIN 1u
-#define REVERSE_PIN 2u
-#define X_AXIS  A4
-#define Y_AXIS  A5
+#define SWING_PIN   (6u)
+#define ACCELERATE_PIN (8u)
+#define REVERSE_PIN (7u)
+#define X_AXIS  A1
+#define Y_AXIS  A0
 
 RF24 radio(9, 10); // CE, CSN         
 const byte address[6] = "00001";     /*Byte of array representing the address. This is the address where we will send the data. 
@@ -25,8 +24,7 @@ typedef struct
   bool swingDigitalRead = 0u;
   bool accelerateDigitalRead = 0u;
   bool reverseDigitalRead = 0u;
-  uint32_t X_Axis_Positive = 0u;
-  uint32_t X_Axis_Negative = 0u;
+  uint32_t xAxis = 0u;
 }Controller_t;
 
 Controller_t data;
@@ -37,6 +35,7 @@ void setup()
   Serial.begin(9600);
 
   pinMode(SWING_PIN, INPUT);
+  pinMode(4, OUTPUT);
   pinMode(ACCELERATE_PIN, INPUT);
   pinMode(REVERSE_PIN, INPUT);
 
@@ -49,19 +48,19 @@ void setup()
 
 void loop()
 {
-  data.X_Axis_Positive = analogRead(X_AXIS);
-  data.X_Axis_Negative = analogRead(X_AXIS);
+  digitalWrite(4, HIGH);
+  data.xAxis = analogRead(X_AXIS);
   data.swingDigitalRead = digitalRead(SWING_PIN);
   data.accelerateDigitalRead = digitalRead(ACCELERATE_PIN);
   data.reverseDigitalRead = digitalRead(REVERSE_PIN);
-  
+  Serial.println(data.accelerateDigitalRead);
   switch(ControllerState)
   {
     case STANDBY:
-      Serial.println("Standing by");
-      if (data.accelerateDigitalRead == HIGH)
+      Serial.println(data.xAxis);
+      if (data.accelerateDigitalRead == HIGH)   //Test D4 to output a logic signal for D8 to read.
       {
-        Serial.println("Changing State");
+//        Serial.println("Changing State");
         ControllerState = ACCELERATE;
       }
       
@@ -81,29 +80,8 @@ void loop()
     case ACCELERATE:      /*Note: Adjust below commented code to accomodate for X axis*/
       if (data.accelerateDigitalRead == HIGH)
       {
-        Serial.println("Accelerating");
-        Serial.println(data.X_Axis_Positive);
-        Serial.println(data.X_Axis_Negative);
-//         if(data.X_Axis_Negative < 450 ) //Note: Turns Left
-//         {
-//            data.swingDigitalRead = digitalRead(swingPin);
-//            Serial.println(data.X_Axis_Positive);
-//            Serial.println(data.X_Axis_Negative);
-//         }
-  
-         // if(data.X_Axis_Negative > 512 ) //Note: Turns Right
-         // {
-         //   data.swingDigitalRead = digitalRead(swingPin);
-         //   Serial.println(data.X_Axis_Positive);
-         //   Serial.println(data.X_Axis_Negative);
-         // }
-  
-         // if(data.X_Axis_Positive < 512 && data.X_Axis_Negative > 450)
-         // {
-         //   data.swingDigitalRead = digitalRead(swingPin);
-         //   Serial.println(data.X_Axis_Positive);
-         //   Serial.println(data.X_Axis_Negative);
-         // } 
+//        Serial.println("Accelerating");
+        Serial.println(data.xAxis);
         ControllerState = ACCELERATE;
       }
   
@@ -119,28 +97,7 @@ void loop()
       if (data.reverseDigitalRead == HIGH)
       {
         Serial.println("Reversing");
-        Serial.println(data.X_Axis_Positive);
-        Serial.println(data.X_Axis_Negative);
-//         if(data.X_Axis_Negative < 450 ) //Note: Turns Left
-//         {
-//            data.swingDigitalRead = digitalRead(swingPin);
-//            Serial.println(data.X_Axis_Positive);
-//            Serial.println(data.X_Axis_Negative);
-//         }
-  
-         // if(data.X_Axis_Negative > 512 ) //Note: Turns Right
-         // {
-         //   data.swingDigitalRead = digitalRead(swingPin);
-         //   Serial.println(data.X_Axis_Positive);
-         //   Serial.println(data.X_Axis_Negative);
-         // }
-  
-         // if(data.X_Axis_Positive < 512 && data.X_Axis_Negative > 450)
-         // {
-         //   data.swingDigitalRead = digitalRead(swingPin);
-         //   Serial.println(data.X_Axis_Positive);
-         //   Serial.println(data.X_Axis_Negative);
-         // } 
+        Serial.println(data.xAxis); 
         ControllerState = REVERSE;
       }
   

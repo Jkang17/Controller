@@ -1,6 +1,7 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
+#include <Servo.h>
 
 #define L_REAR_MOTOR1   (4u)
 #define L_REAR_MOTOR2   (5u)
@@ -8,12 +9,14 @@
 #define R_REAR_MOTOR2   (7u)
 
 #define SWING_PIN       (0u)
-#define SERVO_PIN				(1u)
+#define SERVO_PIN				(2u)
 
 RF24 radio(9, 10); // CE, CSN
 const byte address[6] = "00001";
 boolean button_state = 0u;
 char text[] = "";                 //Saving the incoming data
+uint32_t joyStickMap = 0u;
+Servo myservo;
 
 typedef enum
 {
@@ -28,8 +31,7 @@ typedef struct
   bool swingDigitalRead = 0u;
   bool accelerateDigitalRead = 0u;
   bool reverseDigitalRead = 0u;
-  uint32_t X_Axis_Positive = 0u;
-  uint32_t X_Axis_Negative = 0u;
+  uint32_t xAxis = 0u;
 }Controller_t;
 
 Controller_t data;
@@ -38,6 +40,7 @@ ControllerState_t ControllerState = STANDBY;
 void setup() 
 {	
 	Serial.begin(9600);
+	myservo.attach(SERVO_PIN);
 	pinMode(L_REAR_MOTOR1, OUTPUT);
 	pinMode(L_REAR_MOTOR2, OUTPUT);
 	pinMode(R_REAR_MOTOR1, OUTPUT);
@@ -54,21 +57,23 @@ void loop()
 {
 	if (radio.available())              //Looking for the data.
 	{
+		
     radio.read(&data, sizeof(Controller_t));    //Reading the data
-    Serial.println(data.X_Axis_Positive);      // Leave for debugging purposes
-    //Serial.println(data.X_Axis_Negative);
-    //Serial.println(data.accelerateDigitalRead);
+    joyStickMap = map(data.xAxis, 0, 1023, 0, 180);  
+    myservo.write(joyStickMap);
+    Serial.println(data.xAxis);      // Leave for debugging purposes
 
 		switch(ControllerState)
 		{
 			case STANDBY:
-
-				if (data.accelerateDigitalRead == HIGH)
+				myservo.write(joyStickMap);
+       Serial.println(data.accelerateDigitalRead);
+				if (data.accelerateDigitalRead == LOW)
 				{
 				  ControllerState = ACCELERATE;
 				}
 
-				else if (data.reverseDigitalRead == HIGH)
+				else if (data.reverseDigitalRead == LOW)
 				{
 					ControllerState = REVERSE;
 				}
@@ -82,21 +87,11 @@ void loop()
 			break;
 
 			case ACCELERATE:
-				if (data.accelerateDigitalRead == HIGH)
+				myservo.write(joyStickMap);
+				if (data.accelerateDigitalRead == LOW)
 				{
 					MoveForward();
-					if(data.X_Axis_Positive > 512)	/*Note: Turn Right*/
-					{
-				 			// turn servo right
-						Swing();
-            Serial.println("Right");
-         	}
-           
-					else
-					{
-						Swing();
-						Serial.println("Nothing");
-					}
+					Swing();
 				}
 
 				else
@@ -108,29 +103,11 @@ void loop()
 			break;
 
 			case REVERSE:
-			 	if (data.reverseDigitalRead == HIGH)
+				myservo.write(joyStickMap);
+			 	if (data.reverseDigitalRead == LOW)
 			 	{
 			 		MoveBackward();
-			 		if(data.X_Axis_Positive < 512)
-			 		{
-			 			Swing();
-			 		}
-
-				 	if(data.X_Axis_Negative < 450 ) //Note: Turns Right
-   				{
-   					/*Input the motor control here*/
-   					Swing();
-   				}
-
- 					if(data.X_Axis_Positive < 512 && data.X_Axis_Negative > 450)
-  				{
-  					Swing();
-					}
-
-    			else
-    			{
-    				Serial.println(text);
-    			}
+		 			Swing();
 				}
 
 				else
